@@ -3,10 +3,9 @@ import {Toaster} from "react-hot-toast";
 
 import Layout from "./layout/Layout";
 import Login from "./pages/auth/Login";
-import ZoneMaster from "./pages/master/Zone";
-import Rack from "./pages/master/Rack";
-import Location from "./pages/master/Location";
 import AuthRoute from "./components/auth/AuthRoute.jsx";
+import Dashboard from "@/pages/dashboard/Dashboard.jsx";
+import StockStatus from "@/pages/stock/StockStatus.jsx";
 
 export default function App() {
     return (
@@ -18,20 +17,18 @@ export default function App() {
                     <Route path="/login" element={<Login/>}/>
 
                     {/* 로그인 이후 영역 */}
-                    <Route element={
+                    {/*<Route element={
                         <AuthRoute>
                             <Layout/>
                         </AuthRoute>
                     }>
+                    </Route>
+                    */}
 
-                        {/* 로그인 후 최초 진입 */}
-                        <Route
-                            path="/"
-                            element={<div className="p-4">대시보드(임시)</div>}
-                        />
-                        <Route path="/master/zone" element={<ZoneMaster/>}/>
-                        <Route path="/master/rack" element={<Rack/>}/>
-                        <Route path="/master/location" element={<Location/>}/>
+                    {/* 로그인 후 최초 진입 */}
+                    <Route path="/" element={<Layout />}>
+                        <Route index element={<Dashboard />} />
+                        <Route path="/stock/status" element={<StockStatus />} />
                     </Route>
                 </Routes>
             </BrowserRouter>
