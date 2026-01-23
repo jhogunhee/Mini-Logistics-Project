@@ -1,166 +1,116 @@
-import React, { useState, useMemo } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
-import { Search, Download, RefreshCcw, Package, Filter } from "lucide-react";
+import React from 'react';
+import { MapPin, AlertCircle, Package, MoreVertical, Search } from "lucide-react";
 
 export default function StockStatus() {
-    // 1. 재고 데이터 (실제 서비스에서는 API 호출 결과가 들어갑니다)
-    const [rowData] = useState([
-        { code: '8801043011223', name: '참치마요 삼각김밥', category: '신선식품', zone: '냉장고 A', price: 1200, qty: 5, status: '부족' },
-        { code: '8801055022334', name: '코카콜라 500ml', category: '음료', zone: '워크인 냉장고', price: 2100, qty: 24, status: '정상' },
-        { code: '8801111233445', name: '혜자 도시락 (제육)', category: '신선식품', zone: '냉장고 A', price: 5000, qty: 0, status: '품절' },
-        { code: '8801099144556', name: '포카칩 양파맛', category: '과자', zone: '진열대 B', price: 1700, qty: 12, status: '정상' },
-        { code: '8801022355667', name: '바나나우유 240ml', category: '음료', zone: '냉장고 B', price: 1500, qty: 8, status: '정상' },
-        { code: '8801033466778', name: '신라면 용기면', category: '라면', zone: '진열대 C', price: 1150, qty: 30, status: '정상' },
-    ]);
-
-    // 2. 컬럼 정의 (UI 렌더링 포함)
-    const [columnDefs] = useState([
+    // 구역별로 그룹화된 데이터 (실제로는 API에서 가공해서 가져옵니다)
+    const zones = [
         {
-            field: 'name',
-            headerName: '상품 정보',
-            flex: 2,
-            minWidth: 250,
-            // 체크박스 위치와 디자인 살짝 조정
-            checkboxSelection: true,
-            headerCheckboxSelection: true,
-            cellRenderer: (p) => (
-                <div className="flex flex-col justify-center h-full py-2">
-                    <span className="font-bold text-slate-800 text-[14px]">{p.value}</span>
-                    <span className="text-[11px] text-slate-400 font-medium mt-0.5">{p.data.code}</span>
-                </div>
-            )
+            name: "냉장고 A (신선)",
+            items: [
+                { name: "참치마요 삼각김밥", qty: 5, status: "부족" },
+                { name: "혜자 도시락", qty: 0, status: "품절" },
+                { name: "전주비빔 삼각김밥", qty: 12, status: "정상" },
+            ]
         },
         {
-            field: 'category',
-            headerName: '카테고리',
-            flex: 1,
-            cellRenderer: (p) => <span className="text-slate-500 font-medium">{p.value}</span>
+            name: "워크인 냉장고 (음료)",
+            items: [
+                { name: "코카콜라 500ml", qty: 24, status: "정상" },
+                { name: "바나나우유", qty: 8, status: "정상" },
+                { name: "칸타타 커피", qty: 3, status: "부족" },
+            ]
         },
         {
-            field: 'zone',
-            headerName: '진열 위치',
-            flex: 1,
-            cellRenderer: (p) => (
-                <div className="flex items-center h-full">
-                    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px] font-semibold border border-slate-200">
-                        {p.value}
-                    </span>
-                </div>
-            )
-        },
-        {
-            field: 'price',
-            headerName: '판매가',
-            flex: 1,
-            type: 'rightAligned',
-            valueFormatter: p => `${p.value.toLocaleString()}원`,
-            cellStyle: { color: '#334155', fontWeight: '500' }
-        },
-        {
-            field: 'qty',
-            headerName: '현재고',
-            flex: 0.8,
-            type: 'centerAligned',
-            cellRenderer: (p) => {
-                const isCritical = p.value === 0;
-                const isWarning = p.value <= 5;
-                return (
-                    <div className="flex items-center justify-center h-full">
-                        <span className={`font-bold ${isCritical ? 'text-red-500' : isWarning ? 'text-amber-500' : 'text-slate-700'}`}>
-                            {p.value} <span className="text-[10px] font-normal opacity-50 ml-0.5">개</span>
-                        </span>
-                    </div>
-                );
-            }
-        },
-        {
-            field: 'status',
-            headerName: '상태',
-            flex: 0.8,
-            cellRenderer: (p) => {
-                const styles = {
-                    '정상': 'bg-green-50 text-green-600 border-green-200',
-                    '부족': 'bg-amber-50 text-amber-600 border-amber-200',
-                    '품절': 'bg-red-50 text-red-600 border-red-200',
-                };
-                return (
-                    <div className="flex items-center h-full">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${styles[p.value]}`}>
-                            {p.value}
-                        </span>
-                    </div>
-                );
-            }
-        },
-    ]);
-
-    // 3. 기본 컬럼 설정 (공통 기능)
-    const defaultColDef = useMemo(() => ({
-        sortable: true,
-        filter: true,
-        resizable: true,
-    }), []);
+            name: "진열대 B (과자)",
+            items: [
+                { name: "포카칩 양파맛", qty: 12, status: "정상" },
+                { name: "프링글스 오리지널", qty: 2, status: "부족" },
+            ]
+        }
+    ];
 
     return (
-        <div className="flex flex-col h-full animate-in fade-in duration-500">
-            {/* 상단 헤더 섹션 */}
-            <div className="flex justify-between items-end mb-6">
-                <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2 h-5 bg-indigo-600 rounded-full"></div>
-                        <h2 className="text-xl font-bold text-slate-800 tracking-tight">실시간 재고 현황</h2>
-                    </div>
-                    <p className="text-sm text-slate-500 ml-4">매장 내 모든 상품의 재고와 진열 위치를 관리합니다.</p>
-                </div>
-                <div className="flex gap-2">
-                    <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
-                        <Download size={16} /> 엑셀 다운로드
-                    </button>
-                    <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100">
-                        <Package size={16} /> 신규 입고 등록
-                    </button>
-                </div>
-            </div>
-
-            {/* 필터 및 검색 바 */}
-            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 mb-4">
-                <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+        <div className="space-y-6">
+            {/* 상단 검색 및 필터 */}
+            <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div className="relative w-96">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
                         type="text"
-                        placeholder="상품명, 바코드 검색..."
-                        className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
+                        placeholder="위치 또는 상품명 검색..."
+                        className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none"
                     />
                 </div>
-                <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                    <Filter size={20} />
-                </button>
-                <div className="h-6 w-px bg-slate-200"></div>
-                <span className="text-[12px] font-medium text-slate-400">
-                    현재 필터링 된 품목: <span className="text-indigo-600">{rowData.length}</span>건
-                </span>
+                <div className="flex gap-2">
+                    <span className="text-xs text-slate-400 flex items-center gap-1 font-medium">
+                        <AlertCircle size={14} className="text-amber-500" /> 재고 부족 3건
+                    </span>
+                    <span className="text-xs text-slate-400 flex items-center gap-1 font-medium ml-2">
+                        <Package size={14} className="text-red-500" /> 품절 1건
+                    </span>
+                </div>
             </div>
 
-            {/* AG-Grid 영역 */}
-            <div className="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden ag-theme-alpine custom-grid">
-                <div style={{ height: 'calc(100vh - 280px)', width: '100%' }}>
-                    <AgGridReact
-                        rowData={rowData}
-                        columnDefs={columnDefs}
-                        defaultColDef={defaultColDef}
-                        rowSelection={'multiple'}
-                        rowHeight={60} // 행 높이를 좀 더 높여서 시원하게 만듭니다
-                        headerHeight={50}
-                        animateRows={true}
-                        suppressCellFocus={true} // 클릭 시 생기는 파란색 테두리 박스 제거
-                        // 행 선택 시 색상 유지를 위해 추가
-                        rowClassRules={{
-                            'selected-row': (params) => params.node.isSelected(),
-                        }}
-                    />
-                </div>
+            {/* 위치별 그리드 레이아웃 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {zones.map((zone, idx) => (
+                    <div key={idx} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                        {/* Zone Header */}
+                        <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <div className="p-1.5 bg-indigo-600 rounded-lg text-white">
+                                    <MapPin size={16} />
+                                </div>
+                                <h3 className="font-bold text-slate-800 text-sm">{zone.name}</h3>
+                            </div>
+                            <button className="text-slate-400 hover:text-slate-600">
+                                <MoreVertical size={16} />
+                            </button>
+                        </div>
+
+                        {/* Item List */}
+                        <div className="p-2 flex-1">
+                            {zone.items.map((item, itemIdx) => (
+                                <div
+                                    key={itemIdx}
+                                    className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl transition-colors group"
+                                >
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-semibold text-slate-700">{item.name}</span>
+                                        <span className={`text-[11px] font-bold ${
+                                            item.status === '품절' ? 'text-red-500' :
+                                                item.status === '부족' ? 'text-amber-500' : 'text-slate-400'
+                                        }`}>
+                                            {item.status}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm font-mono font-bold text-slate-600">
+                                            {item.qty}<span className="text-[10px] font-normal ml-0.5">개</span>
+                                        </span>
+                                        {/* 빠른 수정 버튼 (호버 시 노출) */}
+                                        <button className="opacity-0 group-hover:opacity-100 p-1 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-500 shadow-sm transition-opacity">
+                                            수정
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Zone Footer */}
+                        <button className="w-full py-3 text-[12px] font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 transition-colors">
+                            {zone.name} 상세 보기
+                        </button>
+                    </div>
+                ))}
+
+                {/* 구역 추가 카드 */}
+                <button className="border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 hover:border-indigo-300 hover:text-indigo-400 hover:bg-indigo-50/30 transition-all group">
+                    <div className="p-3 rounded-full bg-slate-50 group-hover:bg-indigo-50 mb-3 transition-colors">
+                        <Package size={24} />
+                    </div>
+                    <span className="text-sm font-bold">새 구역 추가</span>
+                </button>
             </div>
         </div>
     );

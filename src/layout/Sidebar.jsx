@@ -1,8 +1,18 @@
-import { NavLink } from "react-router-dom";
+import {NavLink} from "react-router-dom";
 import {
-    LayoutDashboard, Box, Truck, AlertCircle, Settings, Store,
-    History, Zap, FileText, Trash2, Barcode, LineChart, Wallet,
-    TrendingUp, Users
+    AlertCircle,
+    Barcode,
+    Box,
+    LayoutDashboard,
+    LineChart,
+    Settings,
+    Store,
+    Trash2,
+    TrendingUp,
+    Truck,
+    Users,
+    Wallet,
+    ClipboardCheck,
 } from "lucide-react";
 
 const MenuGroup = ({ title, children }) => (
@@ -63,10 +73,11 @@ export default function Sidebar() {
                 </MenuGroup>
 
                 {/* 2. 발주 및 입고 (신규) - 편의점의 핵심 작업 */}
-                <MenuGroup title="주문 / 입고">
-                    <MenuItem to="/order/auto" label="자동 발주 추천" icon={Zap} /> {/* AI 추천 발주 */}
-                    <MenuItem to="/order/list" label="발주 내역" icon={FileText} />
-                    <MenuItem to="/stock/inbound" label="입고/검수" icon={Truck} />
+                <MenuGroup title="입고">
+                    {/*<MenuItem to="/order/auto" label="자동 발주 추천" icon={Zap} />*/}
+                    {/*<MenuItem to="/order/list" label="발주 내역" icon={FileText} />*/}
+                    <MenuItem to="/inbound/expected" label="입고예정" icon={Truck} />
+                    <MenuItem to="/inbound/check" label="입고검수" icon={ClipboardCheck} />
                 </MenuGroup>
 
                 {/* 3. 상품 및 유통기한 (기존 확장) */}
