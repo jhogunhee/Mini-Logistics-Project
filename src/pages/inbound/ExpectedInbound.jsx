@@ -11,32 +11,28 @@ import {ko} from "date-fns/locale";
 export default function ExpectedInbound() {
     const [masterRowData, setMasterRowData] = useState([]);
     const [detailRowData, setDetailRowData] = useState([]);
-    const [selectedInbNo, setSelectedInbNo] = useState([]);
-    const [searchDate, setSearchDate] = useState(new Date().toISOString().split('T')[0]);
-    const [inbNo, setInbNo] = useState(''); // 입고번호 입력값
-    const [prodNm, setProdNm] = useState(''); // 상품명 입력값
+    const [searchCond, setSearchCond] = useState({
+        expectDt: new Date().toISOString().split('T')[0],
+        inbNo: '',
+        prodNm: ''
+    });
 
     // 1. 데이터 로드 로직 (Axios 활용)
     const fetchInboundList = useCallback(async () => {
-        if (!searchDate) {
-            alert("입고예정일은 필수 선택 항목입니다.");
-            return;
-        }
+        const { expectDt, inbNo, prodNm } = searchCond;
 
-        try {
-            const data = await api.get('/inbound/expectInbMasterList', {
-                params: {
-                    STORE_ID: 'ST_SEOUL01', // 현재는 강남점 고정
-                    EXPECT_DT: searchDate.replaceAll('-', ''),
-                    INB_NO: inbNo,
-                    PROD_NM: prodNm
-                },
-            });
-            setMasterRowData(data);
-        } catch (error) {
-            console.error("입고 데이터를 불러오는데 실패했습니다.", error);
-        }
-    }, [searchDate, inbNo, prodNm]);
+        const data = await api.get('/inbound/expectInbMasterList', {
+            params: {
+                storeId: 'ST_SEOUL01',
+                expectDt: expectDt.replaceAll('-', ''),
+                inbNo: inbNo,
+                prodNm: prodNm,
+            },
+        });
+
+        setMasterRowData(data);
+
+    }, [searchCond]);
 
     // 페이지 진입 시 최초 1회 로드
     useEffect(() => {
@@ -90,9 +86,8 @@ export default function ExpectedInbound() {
     // 1. 마스터 행 클릭 시 상세 데이터를 가져오는 함수 (로딩 로직 제거)
     const fetchDetailData = useCallback(async (inbNo) => {
         try {
-            setSelectedInbNo(inbNo);
             const response = await api.get('/inbound/expectInbDetailList', {
-                params: { INB_NO: selectedInbNo }
+                params: { inbNo: inbNo }
             });
             // Axios 응답 데이터 설정 (보통 response.data)
             setDetailRowData(Array.isArray(response) ? response : response.data);
@@ -143,8 +138,12 @@ export default function ExpectedInbound() {
                         <SearchItem label="입고예정일">
                             <div className="flex items-center w-full relative group">
                                 <DatePicker
-                                    selected={new Date(searchDate)}
-                                    onChange={(date) => setSearchDate(date.toISOString().split('T')[0])}
+                                    value={searchCond.EXPCT_DT}
+                                    selected={searchCond.expectDt}
+                                    onChange={(date) => {
+                                        const formatted = date.toISOString().split('T')[0]; // 간편한 변환 방식
+                                        setSearchCond(prev => ({ ...prev, expectDt: formatted }));
+                                    }}
                                     dateFormat="yyyy-MM-dd"
                                     locale={ko}
                                     portalId="root-portal"
@@ -158,8 +157,13 @@ export default function ExpectedInbound() {
                         <SearchItem label="입고번호">
                             <input
                                 type="text"
-                                value={inbNo}
-                                onChange={(e) => setInbNo(e.target.value)}
+                                value={searchCond.INB_NO}
+                                onChange={(e) =>
+                                    setSearchCond((prev) => ({
+                                        ...prev,
+                                        inbNo: e.target.value,
+                                    }))
+                                }
                                 placeholder="번호 입력"
                                 className="w-full border-none p-0 focus:ring-0 bg-transparent text-sm font-bold"
                             />
@@ -167,8 +171,13 @@ export default function ExpectedInbound() {
                         <SearchItem label="상품명">
                             <input
                                 type="text"
-                                value={prodNm}
-                                onChange={(e) => setProdNm(e.target.value)}
+                                value={searchCond.PROD_NM}
+                                onChange={(e) =>
+                                    setSearchCond((prev) => ({
+                                        ...prev,
+                                        prodNm: e.target.value,
+                                    }))
+                                }
                                 placeholder="상품명 입력"
                                 className="w-full border-none p-0 focus:ring-0 bg-transparent text-sm font-bold"
                             />
